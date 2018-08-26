@@ -1,0 +1,44 @@
+version: '2'
+
+services:
+    fluentd:
+      image: 'fluent/fluentd'
+      ports:
+        - "24224:24224"
+        - "24224:24224/udp" 
+      environment:
+        - FLUENT_UID=1000 
+      volumes:
+        - ./data:/fluentd/log
+        - ./fluent.conf:/fluentd/etc/fluent.conf
+        - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+      links:
+        - "elasticsearch"
+    elasticsearch:
+      image: elasticsearch
+      expose:
+        - 9200
+      ports:
+        - "9200:9200"
+    kibana:
+      image: kibana
+      links:
+        - "elasticsearch"
+      ports:
+        - "5601:5601"
+    redis:
+      image: 'bitnami/redis:latest'
+      ports:
+        - "6379:6379"
+      environment:
+        - DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG
+        - ALLOW_EMPTY_PASSWORD=yes
+    postgres:
+      restart: always
+      image: postgres:latest
+      environment:
+        - POSTGRES_PASSWORD=Pass123!
+      volumes:
+        - ./dbdata:/var/lib/postgresql/data
+      ports:
+        - "54329:5432"
