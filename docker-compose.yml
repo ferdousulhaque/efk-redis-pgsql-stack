@@ -57,12 +57,9 @@ services:
     #  environment:
     #    - POSTGRES_PASSWORD=Pass123!
     #  volumes:
-    #    - ./dbdata:/var/lib/postgresql/data
+    #    - ./postgres/dbdata:/var/lib/postgresql/data
     #  ports:
     #    - "5432:5432"
-    #networks:
-    #  elk:
-    #    driver: bridge
 networks:
   elk:
     # Use a custom driver

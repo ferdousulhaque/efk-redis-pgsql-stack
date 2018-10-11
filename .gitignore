@@ -1,2 +1,3 @@
-/data
-/dbdata
+.env
+fluentd/logger
+postgres/dbdata
