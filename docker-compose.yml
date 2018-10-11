@@ -1,44 +1,69 @@
-version: '2'
+version: '3.3'
 
 services:
     fluentd:
-      image: 'fluent/fluentd'
+      build:
+        context: fluentd/
       ports:
         - "24224:24224"
         - "24224:24224/udp" 
       environment:
         - FLUENT_UID=1000 
       volumes:
-        - ./data:/fluentd/log
-        - ./fluent.conf:/fluentd/etc/fluent.conf
+        - ./fluentd/logger:/fluentd/log
+        - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
         - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-      links:
-        - "elasticsearch"
-    elasticsearch:
-      image: elasticsearch
-      expose:
-        - 9200
-      ports:
-        - "9200:9200"
+      networks:
+        - elk
+      depends_on:
+        - elasticsearch
     kibana:
-      image: kibana
-      links:
-        - "elasticsearch"
+      build:
+        context: kibana/
+        args:
+          ELK_VERSION: $ELK_VERSION
+      volumes:
+        - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
       ports:
         - "5601:5601"
-    redis:
-      image: 'bitnami/redis:latest'
+      networks:
+        - elk
+      depends_on:
+        - elasticsearch
+    elasticsearch:
+      build:
+        context: elasticsearch/
+        args:
+          ELK_VERSION: $ELK_VERSION
       ports:
-        - "6379:6379"
-      environment:
-        - DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG
-        - ALLOW_EMPTY_PASSWORD=yes
-    postgres:
-      restart: always
-      image: postgres:latest
-      environment:
-        - POSTGRES_PASSWORD=Pass123!
+      - "9200:9200"
+      - "9300:9300"
       volumes:
-        - ./dbdata:/var/lib/postgresql/data
-      ports:
-        - "54329:5432"
+        - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      environment:
+        ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      networks:
+        - elk
+    #redis:
+    #  image: 'bitnami/redis:latest'
+    #  ports:
+    #    - "6379:6379"
+    #  environment:
+    #    - DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG
+    #    - ALLOW_EMPTY_PASSWORD=yes
+    #postgres:
+    #  restart: always
+    #  image: postgres:latest
+    #  environment:
+    #    - POSTGRES_PASSWORD=Pass123!
+    #  volumes:
+    #    - ./dbdata:/var/lib/postgresql/data
+    #  ports:
+    #    - "5432:5432"
+    #networks:
+    #  elk:
+    #    driver: bridge
+networks:
+  elk:
+    # Use a custom driver
+    driver: bridge
