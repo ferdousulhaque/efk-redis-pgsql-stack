@@ -1,22 +1,6 @@
 version: '3.3'
 
 services:
-    fluentd:
-      build:
-        context: fluentd/
-      ports:
-        - "24224:24224"
-        - "24224:24224/udp" 
-      environment:
-        - FLUENT_UID=1000 
-      volumes:
-        - ./fluentd/logger:/fluentd/log
-        - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
-        - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
-      networks:
-        - elk
-      depends_on:
-        - elasticsearch
     kibana:
       build:
         context: kibana/
@@ -44,22 +28,64 @@ services:
         ES_JAVA_OPTS: "-Xmx256m -Xms256m"
       networks:
         - elk
-    #redis:
-    #  image: 'bitnami/redis:latest'
+    fluentd:
+      build:
+        context: fluentd/
+      ports:
+        - "24224:24224"
+        - "24224:24224/udp" 
+      environment:
+        - FLUENT_UID=1000 
+      volumes:
+        - ./fluentd/logger:/fluentd/log
+        - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
+        # - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
+      links:
+        - elasticsearch
+      networks:
+        - elk
+    redis:
+      image: 'bitnami/redis:latest'
+      ports:
+        - "6379:6379"
+      environment:
+        - DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG
+        - ALLOW_EMPTY_PASSWORD=yes
+      networks:
+        - elk
+    postgres:
+      image: postgres:9.6
+      container_name: postgresql
+      environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=Pass123!
+        - POSTGRES_DB=napi
+      volumes:
+        - ./postgres/dbdata:/var/lib/postgresql/data
+        - ./postgres/dbstructure/dbdump.sql:/docker-entrypoint-initdb.d/dbdump.sql
+        # - ./postgres/dbdata/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+        # - ./postgres/dbdata/postgres.conf:/var/lib/postgresql/data/postgres.conf
+      ports:
+        - "5432:5432"
+      networks:
+        - elk
+    #mysql:
+    #  image: mysql:5.7
+    #  container_name: napi_mysql
     #  ports:
-    #    - "6379:6379"
-    #  environment:
-    #    - DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG
-    #    - ALLOW_EMPTY_PASSWORD=yes
-    #postgres:
-    #  restart: always
-    #  image: postgres:latest
-    #  environment:
-    #    - POSTGRES_PASSWORD=Pass123!
+    #    - "3306:3306"
+    #  command: --init-file /data/application/init.sql
+    #  command: mysqld --plugin-load=mysqlx=mysqlx.so
+    #  command: mysqld --default-authentication-plugin=mysql_native_password
+    #  entrypoint: ['docker-entrypoint.sh', '--default-authentication-plugin=mysql_native_password']
+    #  environment: 
+    #    - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    #    - MYSQL_DATABASE=${MYSQL_DATABASE}
+    #    - MYSQL_USER=${MYSQL_USER}
+    #    - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     #  volumes:
-    #    - ./postgres/dbdata:/var/lib/postgresql/data
-    #  ports:
-    #    - "5432:5432"
+    #    - ./dbdata:/var/lib/mysql
+    #    - ./dbstructure/dbdump.sql:/docker-entrypoint-initdb.d/dbdump.sql
 networks:
   elk:
     # Use a custom driver
