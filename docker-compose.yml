@@ -39,7 +39,6 @@ services:
       volumes:
         - ./fluentd/logger:/fluentd/log
         - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
-        # - ./docker-entrypoint.sh:/tmp/docker-entrypoint.sh
       links:
         - elasticsearch
       networks:
