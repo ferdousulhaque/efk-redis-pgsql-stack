@@ -28,46 +28,46 @@ services:
         ES_JAVA_OPTS: "-Xmx256m -Xms256m"
       networks:
         - elk
-    fluentd:
-      build:
-        context: fluentd/
-      ports:
-        - "24224:24224"
-        - "24224:24224/udp" 
-      environment:
-        - FLUENT_UID=1000 
-      volumes:
-        - ./fluentd/logger:/fluentd/log
-        - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
-      links:
-        - elasticsearch
-      networks:
-        - elk
-    redis:
-      image: 'bitnami/redis:latest'
-      ports:
-        - "6379:6379"
-      environment:
-        - DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG
-        - ALLOW_EMPTY_PASSWORD=yes
-      networks:
-        - elk
-    postgres:
-      image: postgres:9.6
-      container_name: postgresql
-      environment:
-        - POSTGRES_USER=postgres
-        - POSTGRES_PASSWORD=Pass123!
-        - POSTGRES_DB=napi
-      volumes:
-        - ./postgres/dbdata:/var/lib/postgresql/data
-        - ./postgres/dbstructure/dbdump.sql:/docker-entrypoint-initdb.d/dbdump.sql
+    #fluentd:
+    #  build:
+    #    context: fluentd/
+    #  ports:
+    #    - "24224:24224"
+    #    - "24224:24224/udp" 
+    #  environment:
+    #    - FLUENT_UID=1000 
+    #  volumes:
+    #    - ./fluentd/logger:/fluentd/log
+    #    - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
+    #  links:
+    #    - elasticsearch
+    #  networks:
+    #    - elk
+    #redis:
+    #  image: 'bitnami/redis:latest'
+    #  ports:
+    #    - "6379:6379"
+    #  environment:
+    #    - DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG
+    #    - ALLOW_EMPTY_PASSWORD=yes
+    #  networks:
+    #    - elk
+    #postgres:
+    #  image: postgres:9.6
+    #  container_name: postgresql
+    #  environment:
+    #    - POSTGRES_USER=postgres
+    #    - POSTGRES_PASSWORD=Pass123!
+    #    - POSTGRES_DB=napi
+    #  volumes:
+    #    - ./postgres/dbdata:/var/lib/postgresql/data
+    #    - ./postgres/dbstructure/dbdump.sql:/docker-entrypoint-initdb.d/dbdump.sql
         # - ./postgres/dbdata/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
         # - ./postgres/dbdata/postgres.conf:/var/lib/postgresql/data/postgres.conf
-      ports:
-        - "5432:5432"
-      networks:
-        - elk
+    #  ports:
+    #    - "5432:5432"
+    #  networks:
+    #    - elk
     #mysql:
     #  image: mysql:5.7
     #  container_name: napi_mysql
